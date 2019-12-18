@@ -1,0 +1,9 @@
+[submodule "deps/VulkanMemoryAllocator"]
+	path = deps/VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
+[submodule "deps/cpu_features"]
+	path = deps/cpu_features
+	url = https://github.com/google/cpu_features
+[submodule "deps/lodepng"]
+	path = deps/lodepng
+	url = https://github.com/lvandeve/lodepng.git
