@@ -20,22 +20,25 @@
 // lodepng
 #include "lodepng.h"
 // ClspvTest
-#include "vulkan_initialization.hpp" //!< Initialize vulkan memory allocator. This header must be included only once in a project before any vulkan instances are created.
-#include "config.hpp"
-#include "device_options.hpp"
-#include "vulkan_buffer.hpp"
-#include "vulkan_kernel.hpp"
-#include "vulkan_device.hpp"
+#include "vulkan_device/vulkan_initialization.hpp" //!< Initialize vulkan memory allocator. This header must be included only once in a project before any vulkan instances are created.
+#include "vulkan_device/config.hpp"
+#include "vulkan_device/device_options.hpp"
+#include "vulkan_device/vulkan_buffer.hpp"
+#include "vulkan_device/vulkan_kernel.hpp"
+#include "vulkan_device/vulkan_device.hpp"
 
 // Forward declaration
 std::string getDeviceInfo(const clspvtest::VulkanDevice& device);
+
 std::vector<clspvtest::uint32b> loadModuleSpirvCode(
     const std::string_view module_file_name);
 template <typename Type>
+
 clspvtest::UniqueBuffer<Type> makeBuffer(
     clspvtest::VulkanDevice* device,
     const clspvtest::BufferUsage usage_flag);
 template <std::size_t kDimension, typename ...ArgumentTypes>
+
 clspvtest::UniqueKernel<kDimension, ArgumentTypes...> makeKernel(
     clspvtest::VulkanDevice* device,
     const std::string_view module_file_name,
@@ -84,8 +87,8 @@ int main(int /* argc */, char** /* argv */)
     using clspvtest::BufferUsage;
     bool success = true;
     clspvtest::UniqueKernel<1, uint8b, uint8b, uint32b, uint32b> kernel;
-    clspvtest::UniqueBuffer<uint8b> inputs;
-    clspvtest::UniqueBuffer<uint8b> outputs;
+    clspvtest::UniqueBuffer<uint8b> buffer1;
+    clspvtest::UniqueBuffer<uint8b> buffer2;
     clspvtest::UniqueBuffer<uint32b> block_size;
     clspvtest::UniqueBuffer<uint32b> resolution;
     try {
@@ -96,13 +99,13 @@ int main(int /* argc */, char** /* argv */)
         std::cout << info << std::endl;
       }
       // Create vulkan buffers
-      inputs = makeBuffer<clspvtest::uint8b>(device.get(),
-                                             BufferUsage::kDeviceOnly);
-      inputs->setSize(3 * w * h);
-      inputs->write(image.data(), image.size(), 0, 0);
-      outputs = makeBuffer<clspvtest::uint8b>(device.get(),
+      buffer1 = makeBuffer<clspvtest::uint8b>(device.get(),
                                               BufferUsage::kDeviceOnly);
-      outputs->setSize(3 * w * h);
+      buffer1->setSize(3 * w * h);
+      buffer1->write(image.data(), image.size(), 0, 0);
+      buffer2 = makeBuffer<clspvtest::uint8b>(device.get(),
+                                              BufferUsage::kDeviceOnly);
+      buffer2->setSize(3 * w * h);
       const uint32b bsize = 16;
       block_size = makeBuffer<clspvtest::uint32b>(device.get(),
                                                   BufferUsage::kHostToDevice);
@@ -118,16 +121,16 @@ int main(int /* argc */, char** /* argv */)
           "test_kernel.spv",
           0,
           "applyGaussianFilter");
-      // Run the kernel
-      kernel->run(*inputs, *outputs, *block_size, *resolution, {(w * h) / bsize}, 0);
+      // Run the kernel 3 times
+      kernel->run(*buffer1, *buffer2, *block_size, *resolution, {(w * h) / bsize}, 0);
       device->waitForCompletion();
-      kernel->run(*outputs, *inputs, *block_size, *resolution, {(w * h) / bsize}, 0);
+      kernel->run(*buffer2, *buffer1, *block_size, *resolution, {(w * h) / bsize}, 0);
       device->waitForCompletion();
-      kernel->run(*inputs, *outputs, *block_size, *resolution, {(w * h) / bsize}, 0);
+      kernel->run(*buffer1, *buffer2, *block_size, *resolution, {(w * h) / bsize}, 0);
       device->waitForCompletion();
 
       // Read the result
-      outputs->read(image.data(), image.size(), 0, 0);
+      buffer2->read(image.data(), image.size(), 0, 0);
     }
     catch (const std::exception& error) {
       std::cerr << "Error: " << error.what() << std::endl;
@@ -214,21 +217,3 @@ clspvtest::UniqueKernel<kDimension, ArgumentTypes...> makeKernel(
   auto kernel = std::make_unique<Kernel>(device, module_index, kernel_name);
   return kernel;
 }
-
-//std::string getDeviceUsedMemory(const clspvtest::VulkanDevice& device)
-//{
-//  using namespace std::string_literals;
-//  auto to_mb_string = [](const std::size_t usage)
-//  {
-//    const double memory = static_cast<double>(usage) / (1024.0 * 1024.0);
-//    std::string info;
-//    info.resize(13);
-//    std::sprintf(info.data(), "%6.3lf MB", memory);
-//    return info;
-//  };
-//  const auto info = "  Peak device memory usage: "s +
-//                    to_mb_string(device.peakDeviceMemoryUsage()) + "\n" +
-//                    "  Peak   host memory usage: "s +
-//                    to_mb_string(device.peakHostMemoryUsage()) + "\n";
-//  return info;
-//}
