@@ -15,8 +15,6 @@
 #include <string>
 #include <string_view>
 #include <vector>
-// cpu_features
-#include "cpu_features_macros.h"
 // lodepng
 #include "lodepng.h"
 // ClspvTest

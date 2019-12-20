@@ -69,7 +69,8 @@ function(buildVulkanClspvTest)
   buildClModule(test_kernel)
 
   set(test_definitions VULKAN_HPP_TYPESAFE_CONVERSION
-                       VULKAN_HPP_NO_SMART_HANDLE)
+                       VULKAN_HPP_NO_SMART_HANDLE
+                       VULKAN_HPP_ENABLE_DYNAMIC_LOADER_TOOL=0)
   if(Z_DEBUG_MODE)
     list(APPEND test_definitions VMA_DEBUG_INITIALIZE_ALLOCATIONS=1
                                  VMA_DEBUG_MARGIN=32
@@ -79,6 +80,11 @@ function(buildVulkanClspvTest)
   set(test_name VulkanClspvTest)
   # Build unit tests
   add_executable(${test_name} ${PROJECT_SOURCE_DIR}/test/vulkan_clspv_test.cpp)
+  set_target_properties(${test_name} PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
+      RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR}
+      RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_BINARY_DIR}
+      RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BINARY_DIR})
   # Set unittest properties
   set_target_properties(${test_name} PROPERTIES CXX_STANDARD 17
                                                 CXX_EXTENSIONS ON
@@ -93,7 +99,6 @@ function(buildVulkanClspvTest)
                                                          ${lodepng_include_dir})
   target_link_libraries(${test_name} PRIVATE Vulkan::Vulkan
                                              ${lodepng_library}
-                                             cpu_features
                                              ${cxx_linker_flags}
                                              ${CMAKE_THREAD_LIBS_INIT})
   target_compile_definitions(${test_name} PRIVATE ${test_definitions}

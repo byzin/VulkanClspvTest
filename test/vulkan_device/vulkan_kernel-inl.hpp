@@ -127,7 +127,8 @@ template <std::size_t kDimension, typename ...ArgumentTypes> inline
 void VulkanKernel<kDimension, ArgumentTypes...>::bindBuffers(
     BufferRef<ArgumentTypes>... args)
 {
-  constexpr std::size_t num_of_buffers = numOfArguments();
+//  constexpr std::size_t num_of_buffers = numOfArguments();
+  constexpr std::size_t num_of_buffers = sizeof...(ArgumentTypes);
   if ((num_of_buffers == 0) || isSameArgs(args...))
     return;
 
@@ -338,7 +339,8 @@ template <std::size_t kDimension, typename ...ArgumentTypes> inline
 bool VulkanKernel<kDimension, ArgumentTypes...>::isSameArgs(
     BufferRef<ArgumentTypes>... args) const noexcept
 {
-  constexpr std::size_t num_of_buffers = numOfArguments();
+//  constexpr std::size_t num_of_buffers = numOfArguments();
+  constexpr std::size_t num_of_buffers = sizeof...(ArgumentTypes);
   std::array<vk::Buffer, num_of_buffers> buffer_list{{getVkBuffer(args)...}};
   bool result = true;
   for (std::size_t i = 0; (i < buffer_list.size()) && result; ++i)
