@@ -106,11 +106,11 @@ int main(int /* argc */, char** /* argv */)
       buffer2->setSize(3 * w * h);
       const uint32b bsize = 16;
       block_size = makeBuffer<clspvtest::uint32b>(device.get(),
-                                                  BufferUsage::kHostToDevice);
+                                                  BufferUsage::kDeviceOnly);
       block_size->setSize(1);
       block_size->write(&bsize, 1, 0, 0);
       resolution = makeBuffer<clspvtest::uint32b>(device.get(),
-                                                  BufferUsage::kHostToDevice);
+                                                  BufferUsage::kDeviceOnly);
       resolution->setSize(2);
       resolution->write(res.data(), res.size(), 0, 0);
       // Create a kernel

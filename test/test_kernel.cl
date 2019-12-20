@@ -33,12 +33,12 @@ __kernel void applyGaussianFilter(__global const uint8b* inputs,
   if (n <= index)
     return;
 
+  constexpr __constant uint weight_factors[] = {20, 15, 6, 1};
   for (uint b = 0; b < block_size[0]; ++b) {
     const uint center_index = bsize * index + b;
     const uint center_x = center_index % resolution.x;
     const uint center_y = center_index / resolution.x;
 
-    constexpr uint weight_factors[] = {20, 15, 6, 1};
     float3 value = float3{0.0f, 0.0f, 0.0f};
     for (int j = -3; j < 4; ++j) {
       for (int i = -3; i < 4; ++i) {
