@@ -288,7 +288,8 @@ void VulkanKernel<kDimension, ArgumentTypes...>::initDescriptorSet()
 template <std::size_t kDimension, typename ...ArgumentTypes> inline
 void VulkanKernel<kDimension, ArgumentTypes...>::initDescriptorSetLayout()
 {
-  constexpr std::size_t num_of_buffers = numOfArguments();
+//  constexpr std::size_t num_of_buffers = numOfArguments();
+  constexpr std::size_t num_of_buffers = sizeof...(ArgumentTypes);
   std::array<vk::DescriptorSetLayoutBinding, num_of_buffers> layout_bindings;
   for (std::size_t index = 0; index < num_of_buffers; ++index) {
     layout_bindings[index] = vk::DescriptorSetLayoutBinding{
