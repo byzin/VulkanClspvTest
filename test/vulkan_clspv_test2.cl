@@ -1,5 +1,5 @@
 /*!
-  \file test_kernel.cl
+  \file vulkan_clspv_test2.cl
   \author Sho Ikeda
 
   Copyright (c) 2015-2019 Sho Ikeda
@@ -7,6 +7,10 @@
   http://opensource.org/licenses/mit-license.php
   */
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wc++98-compat"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wc++98-c++11-compat-pedantic"
 
 // Type aliases
 typedef char int8b;
@@ -47,8 +51,8 @@ __kernel void applyGaussianFilter(__global const uint8b* inputs,
         if ((0 <= x) && (x < resolution.x) && (0 <= y) && (y < resolution.y)) {
           const uint w = weight_factors[abs(i)] * weight_factors[abs(j)];
           const float weight = static_cast<float>(w) / 4096.0f;
-          const uint pixel_index = y * resolution.x + x;
-          const uchar3 pixel = vload3(pixel_index, inputs);
+          const int pixel_index = y * static_cast<int>(resolution.x) + x;
+          const uchar3 pixel = vload3(static_cast<size_t>(pixel_index), inputs);
           value += weight * convert_float3(pixel);
         }
       }
@@ -58,3 +62,6 @@ __kernel void applyGaussianFilter(__global const uint8b* inputs,
     vstore3(pixel, center_index, outputs);
   }
 }
+
+#pragma clang diagnostic pop
+#pragma clang diagnostic pop

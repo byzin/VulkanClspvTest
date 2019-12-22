@@ -1,5 +1,5 @@
 /*!
-  \file vulkan_clspv_test.cpp
+  \file vulkan_clspv_test1.cpp
   \author Sho Ikeda
 
   Copyright (c) 2015-2019 Sho Ikeda
@@ -15,8 +15,6 @@
 #include <string>
 #include <string_view>
 #include <vector>
-// lodepng
-#include "lodepng.h"
 // ClspvTest
 #include "vulkan_device/vulkan_initialization.hpp" //!< Initialize vulkan memory allocator. This header must be included only once in a project before any vulkan instances are created.
 #include "vulkan_device/config.hpp"
@@ -46,49 +44,24 @@ clspvtest::UniqueKernel<kDimension, ArgumentTypes...> makeKernel(
 
 int main(int /* argc */, char** /* argv */)
 {
-  using clspvtest::int8b;
   using clspvtest::uint8b;
-  using clspvtest::int16b;
-  using clspvtest::uint16b;
-  using clspvtest::int32b;
   using clspvtest::uint32b;
-  using clspvtest::int64b;
-  using clspvtest::uint64b;
-
-  std::cout << "Blur an image with gaussian kernel." << std::endl;
 
   clspvtest::UniqueDevice device;
   clspvtest::DeviceOptions device_options;
-  device_options.app_name_ = "VulkanClspvTest";
+  device_options.app_name_ = "VulkanClspvTest1";
   device_options.app_version_major_ = 1;
   device_options.app_version_minor_ = 0;
   device_options.app_version_patch_ = 0;
   device_options.vulkan_device_number_ = 0; //!< Use 0th GPU
 
+  std::array<float, 7> results;
   {
-    // Load an input image
-    std::vector<uint8b> image;
-    std::array<uint32b, 2> res{{0, 0}};
-    {
-      const char* name = "table.png";
-      std::cout << "- Load `" << name << "'." << std::endl;
-      const uint32b error = lodepng::decode(image, res[0], res[1], name, LCT_RGB);
-      if (error) {
-        //! \todo Handle error
-      }
-    }
-    const uint32b w = res[0];
-    const uint32b h = res[1];
-
-    // Run a vulkan kernel
-    std::cout << "- Run a gaussian kernel." << std::endl;
     using clspvtest::BufferUsage;
     bool success = true;
-    clspvtest::UniqueKernel<1, uint8b, uint8b, uint32b, uint32b> kernel;
-    clspvtest::UniqueBuffer<uint8b> buffer1;
-    clspvtest::UniqueBuffer<uint8b> buffer2;
-    clspvtest::UniqueBuffer<uint32b> block_size;
-    clspvtest::UniqueBuffer<uint32b> resolution;
+    clspvtest::UniqueKernel<1, float, float> kernel;
+    clspvtest::UniqueBuffer<float> buffer1;
+    clspvtest::UniqueBuffer<float> buffer2;
     try {
       // Create a vulkan device
       device = std::make_unique<clspvtest::VulkanDevice>(device_options);
@@ -97,38 +70,22 @@ int main(int /* argc */, char** /* argv */)
         std::cout << info << std::endl;
       }
       // Create vulkan buffers
-      buffer1 = makeBuffer<clspvtest::uint8b>(device.get(),
-                                              BufferUsage::kDeviceOnly);
-      buffer1->setSize(3 * w * h);
-      buffer1->write(image.data(), image.size(), 0, 0);
-      buffer2 = makeBuffer<clspvtest::uint8b>(device.get(),
-                                              BufferUsage::kDeviceOnly);
-      buffer2->setSize(3 * w * h);
-      const uint32b bsize = 16;
-      block_size = makeBuffer<clspvtest::uint32b>(device.get(),
-                                                  BufferUsage::kDeviceOnly);
-      block_size->setSize(1);
-      block_size->write(&bsize, 1, 0, 0);
-      resolution = makeBuffer<clspvtest::uint32b>(device.get(),
-                                                  BufferUsage::kDeviceOnly);
-      resolution->setSize(2);
-      resolution->write(res.data(), res.size(), 0, 0);
+      buffer1 = makeBuffer<float>(device.get(), BufferUsage::kDeviceOnly);
+      buffer1->setSize(sizeof(float) * 16); // sizeof(Marix4x4)
+      buffer2 = makeBuffer<float>(device.get(), BufferUsage::kDeviceOnly);
+      buffer2->setSize(results.size());
       // Create a kernel
-      kernel = makeKernel<1, uint8b, uint8b, uint32b, uint32b>(
+      kernel = makeKernel<1, float, float>(
           device.get(),
-          "test_kernel.spv",
+          "vulkan_clspv_test1.spv",
           0,
-          "applyGaussianFilter");
-      // Run the kernel 3 times
-      kernel->run(*buffer1, *buffer2, *block_size, *resolution, {(w * h) / bsize}, 0);
-      device->waitForCompletion();
-      kernel->run(*buffer2, *buffer1, *block_size, *resolution, {(w * h) / bsize}, 0);
-      device->waitForCompletion();
-      kernel->run(*buffer1, *buffer2, *block_size, *resolution, {(w * h) / bsize}, 0);
+          "testSummation");
+      const uint32b num_threads = 1;
+      kernel->run(*buffer1, *buffer2, {num_threads}, 0);
       device->waitForCompletion();
 
       // Read the result
-      buffer2->read(image.data(), image.size(), 0, 0);
+      buffer2->read(results.data(), results.size(), 0, 0);
     }
     catch (const std::exception& error) {
       std::cerr << "Error: " << error.what() << std::endl;
@@ -137,12 +94,8 @@ int main(int /* argc */, char** /* argv */)
 
     // Save the output image
     if (success) {
-      const char* name = "result_gpu.png";
-      std::cout << "- Save the result as `" << name << "'." << std::endl;
-      const uint32b error = lodepng::encode(name, image, w, h, LCT_RGB);
-      if (error) {
-        //! \todo Handle error
-      }
+      for (std::size_t i = 0; i < results.size(); ++i)
+        std::cout << "  output[" << i << "] = " << results[i] << std::endl;
     }
   }
 

@@ -39,11 +39,11 @@ getCxxCompilerFlags(cxx_compiler_flags cxx_linker_flags cxx_definitions)
 # Thread
 find_package(Threads REQUIRED)
 # cpu_features
-set(cpu_features_path ${PROJECT_SOURCE_DIR}/deps/cpu_features)
-set(cpu_features_dst_path ${PROJECT_BINARY_DIR}/cpu_features)
-checkSubmodule(${cpu_features_path})
-file(MAKE_DIRECTORY ${cpu_features_dst_path})
-add_subdirectory(${cpu_features_path} ${cpu_features_dst_path})
+#set(cpu_features_path ${PROJECT_SOURCE_DIR}/deps/cpu_features)
+#set(cpu_features_dst_path ${PROJECT_BINARY_DIR}/cpu_features)
+#checkSubmodule(${cpu_features_path})
+#file(MAKE_DIRECTORY ${cpu_features_dst_path})
+#add_subdirectory(${cpu_features_path} ${cpu_features_dst_path})
 # lodepng
 set(lodepng_dir ${PROJECT_SOURCE_DIR}/deps/lodepng)
 checkSubmodule(${lodepng_dir})
@@ -56,4 +56,5 @@ set(vma_include_dir ${PROJECT_SOURCE_DIR}/deps/VulkanMemoryAllocator/src)
 # clspv test
 file(COPY ${PROJECT_SOURCE_DIR}/table.png DESTINATION ${PROJECT_BINARY_DIR})
 include(${PROJECT_SOURCE_DIR}/test/config.cmake)
-buildVulkanClspvTest()
+buildVulkanClspvTest1()
+buildVulkanClspvTest2()
