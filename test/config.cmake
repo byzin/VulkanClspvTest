@@ -54,7 +54,7 @@ function(buildClModule module_name file_name)
   endif()
 
   set(clspv_options --c++ --inline-entry-points --int8 -O=3)
-  set(clspv_command ${clspv} ${clspv_options} -o=${spv_file_path} ${cl_source_file})
+  set(clspv_command ${clspv} ${clspv_options} --descriptormap=${file_name}.csv -o=${spv_file_path} ${cl_source_file})
   string(REPLACE ";" " " clspv_command_string "${clspv_command}")
   add_custom_command(OUTPUT ${spv_file_path}
     COMMAND ${clspv_command}
