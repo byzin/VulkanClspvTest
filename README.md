@@ -7,7 +7,7 @@ Introduction to Vulkan Clspv.
 ### Prerequisites ###
 
 * C++17 support compiler
-* [CMake](https://cmake.org/download/) 3.12 or later
+* [CMake](https://cmake.org/download/) 3.14 or later
 * [Vulkan SDK](https://vulkan.lunarg.com/sdk/home) 1.1.126.0 or later
 * [Clspv](https://github.com/google/clspv) ef5ba2b or later
 

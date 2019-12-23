@@ -54,6 +54,11 @@ int main(int /* argc */, char** /* argv */)
   device_options.app_version_minor_ = 0;
   device_options.app_version_patch_ = 0;
   device_options.vulkan_device_number_ = 0; //!< Use 0th GPU
+#if defined(Z_DEBUG_MODE)
+  device_options.enable_debug_ = true;
+#else
+  device_options.enable_debug_ = false;
+#endif
 
   std::array<float, 7> results;
   {
